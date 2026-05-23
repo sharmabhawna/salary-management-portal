@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import App from '@/App';
 import { mockEmployees } from './mocks/employees';
 import { server } from './mocks/server';
+import { renderWithRouter } from './helpers/renderWithRouter';
 
 describe('App', () => {
   it('should render the employee list', async () => {
@@ -17,7 +18,7 @@ describe('App', () => {
       ),
     );
 
-    render(<App />);
+    renderWithRouter(<App />);
 
     expect(await screen.findByRole('heading', { name: /employees/i })).toBeInTheDocument();
   });

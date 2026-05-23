@@ -1,17 +1,19 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { NavBar } from '@/components/NavBar';
+import { renderWithRouter } from '../helpers/renderWithRouter';
 
 function renderNavBar(initialRoute = '/') {
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
+  return renderWithRouter(
+    <>
       <NavBar />
       <Routes>
         <Route path="/" element={<h1>Employees Page</h1>} />
         <Route path="/insights" element={<h1>Insights Page</h1>} />
       </Routes>
-    </MemoryRouter>,
+    </>,
+    { routerProps: { initialEntries: [initialRoute] } },
   );
 }
 

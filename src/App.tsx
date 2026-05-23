@@ -1,9 +1,9 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { NavBar } from '@/components/NavBar';
 import { EmployeeList } from '@/features/employees/EmployeeList';
 import { InsightsDashboard } from '@/features/insights/InsightsDashboard';
 
-export function AppRoutes() {
+function App() {
   return (
     <>
       <NavBar />
@@ -14,14 +14,6 @@ export function AppRoutes() {
         </Routes>
       </main>
     </>
-  );
-}
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
   );
 }
 
