@@ -44,3 +44,41 @@ export interface PaginatedEmployees {
   page: number;
   limit: number;
 }
+
+export interface EmployeeInput {
+  fullName: string;
+  email: string;
+  jobTitle: string;
+  department: string;
+  country: string;
+  salary: number;
+  employmentType: EmploymentType;
+  startDate: string;
+}
+
+export interface EmployeeResponse {
+  data: Employee;
+}
+
+export type EmployeeFormField =
+  | 'fullName'
+  | 'email'
+  | 'jobTitle'
+  | 'department'
+  | 'country'
+  | 'salary'
+  | 'employmentType'
+  | 'startDate';
+
+export interface EmployeeFormValues {
+  fullName: string;
+  email: string;
+  jobTitle: string;
+  department: string;
+  country: string;
+  salary: string;
+  employmentType: EmploymentType | '';
+  startDate: string;
+}
+
+export type EmployeeFormFieldErrors = Partial<Record<EmployeeFormField, string>>;

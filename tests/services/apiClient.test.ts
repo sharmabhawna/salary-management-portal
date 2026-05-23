@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { ApiError, apiDelete, apiGet } from '@/services/apiClient';
+import { ApiError, apiDelete, apiGet, apiPost, apiPut } from '@/services/apiClient';
 import { server } from '../mocks/server';
 
 describe('apiClient', () => {
@@ -72,5 +72,49 @@ describe('apiClient', () => {
     );
 
     await expect(apiDelete('/employees/emp-1')).resolves.toBeUndefined();
+  });
+
+  it('returns parsed JSON for successful POST requests', async () => {
+    server.use(
+      http.post('/api/employees', () =>
+        HttpResponse.json({ data: { id: 'emp-1' } }, { status: 201 }),
+      ),
+    );
+
+    const result = await apiPost<{ data: { id: string } }>('/employees', {
+      fullName: 'Jane Doe',
+    });
+
+    expect(result.data.id).toBe('emp-1');
+  });
+
+  it('returns parsed JSON for successful PUT requests', async () => {
+    server.use(
+      http.put('/api/employees/emp-1', () =>
+        HttpResponse.json({ data: { id: 'emp-1', fullName: 'Updated' } }),
+      ),
+    );
+
+    const result = await apiPut<{ data: { fullName: string } }>('/employees/emp-1', {
+      fullName: 'Updated',
+    });
+
+    expect(result.data.fullName).toBe('Updated');
+  });
+
+  it('throws ApiError when POST requests fail', async () => {
+    server.use(
+      http.post('/api/employees', () =>
+        HttpResponse.json(
+          { error: { code: 'VALIDATION_ERROR', message: 'Invalid data' } },
+          { status: 400 },
+        ),
+      ),
+    );
+
+    await expect(apiPost('/employees', {})).rejects.toMatchObject({
+      message: 'Invalid data',
+      status: 400,
+    });
   });
 });

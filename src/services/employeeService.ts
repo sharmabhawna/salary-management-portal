@@ -1,5 +1,8 @@
-import { apiDelete, apiGet } from '@/services/apiClient';
+import { apiDelete, apiGet, apiPost, apiPut } from '@/services/apiClient';
 import type {
+  Employee,
+  EmployeeInput,
+  EmployeeResponse,
   GetEmployeesParams,
   PaginatedEmployees,
 } from '@/types/employee';
@@ -22,4 +25,17 @@ export async function getEmployees(
 
 export async function deleteEmployee(id: string): Promise<void> {
   await apiDelete(`/employees/${id}`);
+}
+
+export async function createEmployee(data: EmployeeInput): Promise<Employee> {
+  const response = await apiPost<EmployeeResponse>('/employees', data);
+  return response.data;
+}
+
+export async function updateEmployee(
+  id: string,
+  data: EmployeeInput,
+): Promise<Employee> {
+  const response = await apiPut<EmployeeResponse>(`/employees/${id}`, data);
+  return response.data;
 }
