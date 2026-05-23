@@ -105,4 +105,33 @@ describe('useEmployees', () => {
       setTimeout(resolve, 100);
     });
   });
+
+  it('refreshes employees when refreshEmployees is called', async () => {
+    let requestCount = 0;
+
+    server.use(
+      http.get('/api/employees', () => {
+        requestCount += 1;
+
+        return HttpResponse.json({
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 2,
+        });
+      }),
+    );
+
+    const { result } = renderHook(() => useEmployees({ pageSize: 2 }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await result.current.refreshEmployees();
+
+    await waitFor(() => {
+      expect(requestCount).toBeGreaterThan(1);
+    });
+  });
 });

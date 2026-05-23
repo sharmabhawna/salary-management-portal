@@ -1,4 +1,10 @@
 import { useState } from 'react';
+import { EmployeeForm } from '@/features/employees/EmployeeForm';
+import {
+  COUNTRIES,
+  DEPARTMENTS,
+  EMPLOYMENT_TYPES,
+} from '@/features/employees/employeeOptions';
 import { useEmployees } from '@/hooks/useEmployees';
 import type { Employee, EmployeeSortField } from '@/types/employee';
 import {
@@ -6,36 +12,6 @@ import {
   formatEmploymentType,
   formatSalary,
 } from '@/utils/format';
-
-const DEPARTMENTS = [
-  'Engineering',
-  'Sales',
-  'Marketing',
-  'Finance',
-  'HR',
-  'Operations',
-  'Legal',
-  'Product',
-  'Design',
-  'Customer Success',
-] as const;
-
-const COUNTRIES = [
-  'United States',
-  'United Kingdom',
-  'Germany',
-  'India',
-  'Canada',
-  'Australia',
-  'France',
-  'Brazil',
-] as const;
-
-const EMPLOYMENT_TYPES = [
-  { value: 'FULL_TIME', label: 'Full Time' },
-  { value: 'PART_TIME', label: 'Part Time' },
-  { value: 'CONTRACT', label: 'Contract' },
-] as const;
 
 type Props = {
   pageSize?: number;
@@ -156,10 +132,14 @@ export function EmployeeList({ pageSize }: Props) {
     setFilters,
     toggleSort,
     deleteEmployeeById,
+    refreshEmployees,
   } = useEmployees({ pageSize });
 
   const [pendingDelete, setPendingDelete] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [formEmployee, setFormEmployee] = useState<Employee | null | undefined>(
+    undefined,
+  );
 
   const handleConfirmDelete = async (employeeId: string) => {
     setIsDeleting(true);
@@ -174,11 +154,22 @@ export function EmployeeList({ pageSize }: Props) {
 
   return (
     <section className="mx-auto max-w-7xl p-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Employees</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Manage and review employee records
-        </p>
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Employees</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage and review employee records
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setFormEmployee(null);
+          }}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          Add Employee
+        </button>
       </header>
 
       <div className="mb-4 grid gap-4 md:grid-cols-4">
@@ -322,15 +313,26 @@ export function EmployeeList({ pageSize }: Props) {
                     {formatEmploymentType(employee.employmentType)}
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPendingDelete(employee);
-                      }}
-                      className="rounded-md border border-red-200 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormEmployee(employee);
+                        }}
+                        className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPendingDelete(employee);
+                        }}
+                        className="rounded-md border border-red-200 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -368,6 +370,19 @@ export function EmployeeList({ pageSize }: Props) {
             </button>
           </div>
         </div>
+      )}
+
+      {formEmployee !== undefined && (
+        <EmployeeForm
+          employee={formEmployee ?? undefined}
+          onCancel={() => {
+            setFormEmployee(undefined);
+          }}
+          onSuccess={(_employee) => {
+            setFormEmployee(undefined);
+            void refreshEmployees();
+          }}
+        />
       )}
 
       {pendingDelete && (

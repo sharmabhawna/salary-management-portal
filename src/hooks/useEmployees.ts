@@ -35,6 +35,7 @@ export interface UseEmployeesResult {
   setFilters: (filters: Partial<EmployeeFilters>) => void;
   toggleSort: (field: EmployeeSortField) => void;
   deleteEmployeeById: (id: string) => Promise<void>;
+  refreshEmployees: () => Promise<void>;
 }
 
 interface SortState {
@@ -151,6 +152,10 @@ export function useEmployees(
     await reloadRef.current?.();
   }, []);
 
+  const refreshEmployees = useCallback(async () => {
+    await reloadRef.current?.();
+  }, []);
+
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return {
@@ -168,5 +173,6 @@ export function useEmployees(
     setFilters,
     toggleSort,
     deleteEmployeeById,
+    refreshEmployees,
   };
 }
