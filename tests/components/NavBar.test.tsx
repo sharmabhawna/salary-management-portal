@@ -15,7 +15,7 @@ function renderNavBar(initialRoute = '/') {
   );
 }
 
-describe.skip('NavBar', () => {
+describe('NavBar', () => {
   it('renders both nav links', () => {
     renderNavBar();
 
@@ -54,12 +54,5 @@ describe.skip('NavBar', () => {
     await user.click(screen.getByRole('link', { name: /insights/i }));
 
     expect(screen.getByRole('heading', { name: /insights page/i })).toBeInTheDocument();
-  });
-});
-
-describe('NavBar placeholder', () => {
-  it('renders the stub component', () => {
-    const { container } = render(<NavBar />);
-    expect(container).toBeEmptyDOMElement();
   });
 });
