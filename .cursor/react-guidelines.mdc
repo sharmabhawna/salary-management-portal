@@ -1,0 +1,189 @@
+---
+description: React + TypeScript coding guidelines for this project
+globs: ["**/*.tsx", "**/*.ts", "!**/*.test.tsx", "!**/*.test.ts"]
+alwaysApply: true
+---
+
+# React + TypeScript Guidelines
+
+## ⚛️ Component Rules
+
+- **One component per file.** Filename = component name: `LoginForm.tsx`
+- **Functional components only** — no class components
+- **Keep components small** — if it scrolls to read, split it
+- **Separate concerns strictly:**
+  - UI → component
+  - Logic / state → custom hook
+  - API calls → `src/services/`
+
+```tsx
+// ❌ Bad — tangled
+function UserList() {
+  const [users, setUsers] = useState<User[]>([]);
+  useEffect(() => {
+    fetch('/api/users').then(r => r.json()).then(setUsers);
+  }, []);
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+
+// ✅ Good — separated
+function UserList() {
+  const { users, isLoading, error } = useUsers();
+  if (isLoading) return <Spinner />;
+  if (error) return <ErrorMessage error={error} />;
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+---
+
+## 🔷 TypeScript — Strict Mode
+
+`strict: true` is on. Respect it.
+
+- **No `any`** — use `unknown` and narrow, or define a proper type
+- Define a named `Props` type for every component — no inline object types on the signature
+- Use `interface` for extendable shapes, `type` for unions and utility types
+- All custom hooks must have explicit return types
+
+```tsx
+// ✅ Good
+type Props = {
+  userId: string;
+  onSuccess: (user: User) => void;
+};
+
+function UserCard({ userId, onSuccess }: Props) { ... }
+```
+
+---
+
+## 🪝 Custom Hooks
+
+- All custom hooks start with `use`: `useUsers`, `useLoginForm`
+- One hook = one concern — if it does two things, split it
+- Never call hooks conditionally or inside loops
+- Export only what consumers need — keep internals private
+
+---
+
+## 🗂️ State Management — Use the Simplest Option
+
+| Need | Solution |
+|---|---|
+| Local UI state | `useState` |
+| Complex state transitions | `useReducer` |
+| Shared between siblings | Lift to nearest common parent |
+| Cross-cutting (auth, theme) | Context |
+| Server / async data | `fetch` in a custom hook or React Query |
+
+- **Never fetch data directly in `useEffect`** — wrap in a custom hook
+- Context is not a general state store — only for stable, rarely-changing values
+- Don't reach for a global state library unless local + lifted state is genuinely insufficient
+
+---
+
+## ⚡ Side Effects
+
+- `useEffect` is for syncing with external systems only
+- Always return a cleanup function when subscribing
+- `eslint-plugin-react-hooks` `exhaustive-deps` rule is on — obey it, don't silence it
+
+---
+
+## 🎨 Styling — Tailwind
+
+- **Tailwind utility classes only** — no inline styles for static values, no separate CSS files
+- Inline styles are allowed only for truly dynamic values (e.g. calculated pixel widths from JS)
+- Extract repeated class combinations into a component — not a custom CSS class
+- Use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`) for responsive design
+- No `!important`, no magic numbers
+
+```tsx
+// ❌ Bad — CSS for something Tailwind handles
+<div style={{ display: 'flex', gap: '8px' }}>
+
+// ✅ Good
+<div className="flex gap-2">
+```
+
+---
+
+## 🧪 Testing — RTL + Vitest
+
+### Tooling
+- **Vitest** as the test runner (Jest-compatible API)
+- **React Testing Library** for rendering
+- **`@testing-library/user-event`** for interactions — never `fireEvent`
+- Mock API calls via `vi.mock` or MSW at the network boundary — never mock internal modules
+
+### Query Priority (always use in this order)
+1. `getByRole` — always preferred, tests accessibility
+2. `getByLabelText` — for form fields
+3. `getByPlaceholderText` — only if no label
+4. `getByText` — for static content
+5. `getByTestId` — **last resort only**
+
+### What to test per component
+- Default render
+- Loading, error, and empty states
+- Every user interaction that changes the UI
+- Form validation messages
+- Conditional rendering branches
+
+### What NOT to test
+- Internal state values
+- CSS class names
+- Implementation details of child components
+
+---
+
+## ♿ Accessibility
+
+- Semantic HTML always: `<button>`, `<nav>`, `<main>`, `<section>` over `<div>`
+- Every `<img>` must have `alt` (empty string for decorative)
+- Every form field must have an associated `<label>`
+- `<button>` for actions, `<a>` for navigation — never swap
+
+---
+
+## 📁 File & Folder Structure
+
+```
+src/
+├── components/         Shared reusable UI
+│   └── Button/
+│       └── Button.tsx
+├── features/           Feature-scoped components + hooks
+│   └── Login/
+│       ├── LoginForm.tsx
+│       └── useLoginForm.ts
+├── hooks/              Shared custom hooks
+├── services/           API calls (apiClient.ts lives here)
+├── types/              Shared TypeScript types/interfaces
+└── utils/              Pure utility functions
+tests/
+├── setup.ts            Global test setup
+├── components/         Mirror of src/components/
+│   └── Button/
+│       └── Button.test.tsx
+└── features/           Mirror of src/features/
+    └── Login/
+        └── LoginForm.test.tsx
+```
+
+- Test file lives in `tests/` mirroring the `src/` structure
+- Named exports only — no default exports except `App.tsx` and `main.tsx`
+
+---
+
+## 🚫 Always Forbidden
+
+- `any` type
+- `console.log` anywhere
+- Class components
+- `data-testid` without a test using it
+- Inline styles for static values
+- Fetching data directly in `useEffect`
+- Mocking your own internal modules — mock at the network boundary
+- Commented-out code in commits
