@@ -1,10 +1,11 @@
 import { http, HttpResponse } from 'msw';
+import type { Employee, EmployeeInput } from '@/types/employee';
 import { mockEmployees, mockEmployeesPage2 } from './employees';
 
 const API_BASE = '/api';
 
 function filterEmployees(
-  employees: typeof mockEmployees,
+  employees: Employee[],
   search: string | null,
   country: string | null,
   department: string | null,
@@ -31,6 +32,8 @@ function filterEmployees(
   });
 }
 
+const employeeStore: Employee[] = [...mockEmployees, ...mockEmployeesPage2];
+
 export const handlers = [
   http.get(`${API_BASE}/employees`, ({ request }) => {
     const url = new URL(request.url);
@@ -41,9 +44,8 @@ export const handlers = [
     const department = url.searchParams.get('department');
     const employmentType = url.searchParams.get('employmentType');
 
-    const allEmployees = [...mockEmployees, ...mockEmployeesPage2];
     const filtered = filterEmployees(
-      allEmployees,
+      employeeStore,
       search,
       country,
       department,
@@ -61,6 +63,50 @@ export const handlers = [
     });
   }),
 
+  http.post(`${API_BASE}/employees`, async ({ request }) => {
+    const body = (await request.json()) as EmployeeInput;
+    const newEmployee: Employee = {
+      id: `emp-${String(employeeStore.length + 1)}`,
+      fullName: body.fullName,
+      email: body.email,
+      jobTitle: body.jobTitle,
+      department: body.department,
+      country: body.country,
+      salary: body.salary,
+      employmentType: body.employmentType,
+      startDate: body.startDate,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    };
+
+    employeeStore.push(newEmployee);
+
+    return HttpResponse.json({ data: newEmployee }, { status: 201 });
+  }),
+
+  http.put(`${API_BASE}/employees/:id`, async ({ request, params }) => {
+    const id = params.id as string;
+    const body = (await request.json()) as EmployeeInput;
+    const index = employeeStore.findIndex((employee) => employee.id === id);
+
+    if (index === -1) {
+      return HttpResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Employee not found' } },
+        { status: 404 },
+      );
+    }
+
+    const updatedEmployee: Employee = {
+      ...employeeStore[index],
+      ...body,
+      updatedAt: '2024-01-02T00:00:00.000Z',
+    };
+
+    employeeStore[index] = updatedEmployee;
+
+    return HttpResponse.json({ data: updatedEmployee });
+  }),
+
   http.delete(`${API_BASE}/employees/:id`, ({ params }) => {
     const id = params.id as string;
 
@@ -69,6 +115,11 @@ export const handlers = [
         { error: { code: 'NOT_FOUND', message: 'Employee not found' } },
         { status: 404 },
       );
+    }
+
+    const index = employeeStore.findIndex((employee) => employee.id === id);
+    if (index !== -1) {
+      employeeStore.splice(index, 1);
     }
 
     return new HttpResponse(null, { status: 204 });
