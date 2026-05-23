@@ -34,6 +34,89 @@ function filterEmployees(
 
 const employeeStore: Employee[] = [...mockEmployees, ...mockEmployeesPage2];
 
+function buildCountrySalaryStats(country: string) {
+  const employees = employeeStore.filter((employee) => employee.country === country);
+
+  if (employees.length === 0) {
+    return {
+      data: null,
+      message: `No employees found in ${country}`,
+    };
+  }
+
+  const salaries = employees.map((employee) => employee.salary);
+
+  return {
+    data: {
+      country,
+      min: Math.min(...salaries),
+      max: Math.max(...salaries),
+      average: salaries.reduce((total, salary) => total + salary, 0) / salaries.length,
+    },
+  };
+}
+
+function buildJobTitleSalaryInsight(jobTitle: string, country: string) {
+  const employees = employeeStore.filter(
+    (employee) =>
+      employee.country === country &&
+      employee.jobTitle.toLowerCase() === jobTitle.toLowerCase(),
+  );
+
+  if (employees.length === 0) {
+    return {
+      data: null,
+      message: `No employees found with job title '${jobTitle}' in ${country}`,
+    };
+  }
+
+  const average =
+    employees.reduce((total, employee) => total + employee.salary, 0) /
+    employees.length;
+
+  return {
+    data: {
+      country,
+      jobTitle,
+      average,
+    },
+  };
+}
+
+function buildDepartmentSalaryStats() {
+  const totals = new Map<string, { total: number; count: number }>();
+
+  for (const employee of employeeStore) {
+    const current = totals.get(employee.department) ?? { total: 0, count: 0 };
+    totals.set(employee.department, {
+      total: current.total + employee.salary,
+      count: current.count + 1,
+    });
+  }
+
+  return {
+    data: [...totals.entries()].map(([department, stats]) => ({
+      department,
+      average: stats.total / stats.count,
+    })),
+  };
+}
+
+function buildHeadcountByCountry() {
+  const totals = new Map<string, number>();
+
+  for (const employee of employeeStore) {
+    totals.set(employee.country, (totals.get(employee.country) ?? 0) + 1);
+  }
+
+  return {
+    data: [...totals.entries()].map(([country, headcount]) => ({
+      country,
+      headcount,
+    })),
+  };
+}
+
 export const handlers = [
   http.get(`${API_BASE}/employees`, ({ request }) => {
     const url = new URL(request.url);
@@ -124,4 +207,27 @@ export const handlers = [
 
     return new HttpResponse(null, { status: 204 });
   }),
+
+  http.get(`${API_BASE}/insights/salary/country`, ({ request }) => {
+    const url = new URL(request.url);
+    const country = url.searchParams.get('country') ?? '';
+
+    return HttpResponse.json(buildCountrySalaryStats(country));
+  }),
+
+  http.get(`${API_BASE}/insights/salary/job-title`, ({ request }) => {
+    const url = new URL(request.url);
+    const country = url.searchParams.get('country') ?? '';
+    const jobTitle = url.searchParams.get('jobTitle') ?? '';
+
+    return HttpResponse.json(buildJobTitleSalaryInsight(jobTitle, country));
+  }),
+
+  http.get(`${API_BASE}/insights/salary/department`, () =>
+    HttpResponse.json(buildDepartmentSalaryStats()),
+  ),
+
+  http.get(`${API_BASE}/insights/headcount/country`, () =>
+    HttpResponse.json(buildHeadcountByCountry()),
+  ),
 ];
