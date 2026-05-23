@@ -27,3 +27,7 @@ export function formatDisplayDate(isoDate: string): string {
     day: 'numeric',
   }).format(date);
 }
+
+export function formatHeadcount(count: number): string {
+  return new Intl.NumberFormat('en-US').format(count);
+}
