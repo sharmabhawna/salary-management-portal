@@ -1,4 +1,4 @@
-import { COUNTRIES } from '@/features/employees/employeeOptions';
+import { COUNTRIES, JOB_TITLES } from '@/features/employees/employeeOptions';
 import { useInsights } from '@/hooks/useInsights';
 import { formatHeadcount, formatSalary } from '@/utils/format';
 
@@ -138,20 +138,26 @@ export function InsightsDashboard() {
           >
             <div>
               <label
-                htmlFor="job-title-input"
+                htmlFor="job-title-select"
                 className="mb-1 block text-sm font-medium text-gray-700"
               >
                 Job Title
               </label>
-              <input
-                id="job-title-input"
-                type="text"
+              <select
+                id="job-title-select"
                 value={jobTitleInput}
                 onChange={(event) => {
                   setJobTitleInput(event.target.value);
                 }}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              />
+              >
+                <option value="">Select job title</option>
+                {JOB_TITLES.map((jobTitle) => (
+                  <option key={jobTitle} value={jobTitle}>
+                    {jobTitle}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label
