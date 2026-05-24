@@ -31,6 +31,22 @@ const SORTABLE_COLUMNS: SortableColumn[] = [
   { label: 'Start Date', field: 'startDate' },
 ];
 
+const TABLE_COLUMN_WIDTHS = [
+  '15%',
+  '16%',
+  '11%',
+  '10%',
+  '10%',
+  '10%',
+  '12%',
+  '16%',
+] as const;
+
+const TABLE_ROW_HEIGHT_CLASS = 'h-11';
+const TABLE_HEADER_CELL_CLASS = `max-w-0 px-4 py-0 align-middle ${TABLE_ROW_HEIGHT_CLASS}`;
+const TABLE_DATA_CELL_CLASS = `max-w-0 px-4 py-0 align-middle ${TABLE_ROW_HEIGHT_CLASS}`;
+const TABLE_ACTIONS_CELL_CLASS = `px-4 py-0 align-middle whitespace-nowrap ${TABLE_ROW_HEIGHT_CLASS}`;
+
 function LoadingSkeleton() {
   return (
     <div
@@ -97,7 +113,7 @@ function DeleteConfirmationDialog({
   );
 }
 
-function SortIndicator({
+function SortIcon({
   field,
   sortBy,
   sortOrder,
@@ -106,14 +122,93 @@ function SortIndicator({
   sortBy: EmployeeSortField;
   sortOrder: 'asc' | 'desc';
 }) {
-  if (sortBy !== field) {
-    return null;
-  }
+  const isActive = sortBy === field;
+  const ascendingClass =
+    isActive && sortOrder === 'asc' ? 'text-blue-600' : 'text-gray-300';
+  const descendingClass =
+    isActive && sortOrder === 'desc' ? 'text-blue-600' : 'text-gray-300';
 
   return (
-    <span aria-hidden="true" className="ml-1 text-gray-500">
-      {sortOrder === 'asc' ? '↑' : '↓'}
+    <span
+      aria-hidden="true"
+      className="inline-flex h-[18px] w-3 shrink-0 flex-col items-center justify-center"
+    >
+      <svg
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className={`h-3 w-3 ${ascendingClass}`}
+      >
+        <path
+          fillRule="evenodd"
+          d="M10.53 3.47a.75.75 0 0 0-1.06 0L5.22 7.72a.75.75 0 0 0 1.06 1.06L10 5.06l3.72 3.72a.75.75 0 1 0 1.06-1.06l-4.25-4.25Z"
+          clipRule="evenodd"
+        />
+      </svg>
+      <svg
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className={`-mt-1.5 h-3 w-3 ${descendingClass}`}
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+          clipRule="evenodd"
+        />
+      </svg>
     </span>
+  );
+}
+
+function TableCellContent({
+  value,
+  className = 'text-gray-700',
+}: {
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div className={`truncate ${className}`} title={value}>
+      {value}
+    </div>
+  );
+}
+
+function SortableHeader({
+  column,
+  sortBy,
+  sortOrder,
+  onSort,
+}: {
+  column: SortableColumn;
+  sortBy: EmployeeSortField;
+  sortOrder: 'asc' | 'desc';
+  onSort: (field: EmployeeSortField) => void;
+}) {
+  return (
+    <th
+      scope="col"
+      aria-sort={
+        sortBy === column.field
+          ? sortOrder === 'asc'
+            ? 'ascending'
+            : 'descending'
+          : 'none'
+      }
+      className={`${TABLE_HEADER_CELL_CLASS} text-left font-medium text-gray-700`}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          onSort(column.field);
+        }}
+        className={`relative flex w-full items-center truncate pr-6 text-left hover:text-gray-900 ${TABLE_ROW_HEIGHT_CLASS}`}
+      >
+        {column.label}
+        <span className="absolute right-0 top-1/2 -translate-y-1/2">
+          <SortIcon field={column.field} sortBy={sortBy} sortOrder={sortOrder} />
+        </span>
+      </button>
+    </th>
   );
 }
 
@@ -267,52 +362,72 @@ export function EmployeeList({ pageSize }: Props) {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
+            <colgroup>
+              {TABLE_COLUMN_WIDTHS.map((width, index) => (
+                <col key={index} style={{ width }} />
+              ))}
+            </colgroup>
             <thead className="bg-gray-50">
-              <tr>
+              <tr className={TABLE_ROW_HEIGHT_CLASS}>
                 {SORTABLE_COLUMNS.map((column) => (
-                  <th
+                  <SortableHeader
                     key={column.field}
-                    scope="col"
-                    className="px-4 py-3 text-left font-medium text-gray-700"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        toggleSort(column.field);
-                      }}
-                      className="inline-flex items-center hover:text-gray-900"
-                    >
-                      {column.label}
-                      <SortIndicator
-                        field={column.field}
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
-                      />
-                    </button>
-                  </th>
+                    column={column}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={toggleSort}
+                  />
                 ))}
-                <th scope="col" className="px-4 py-3 text-left font-medium text-gray-700">
-                  Employment Type
+                <th
+                  scope="col"
+                  className={`${TABLE_HEADER_CELL_CLASS} text-left font-medium text-gray-700`}
+                >
+                  <div className={`flex items-center truncate ${TABLE_ROW_HEIGHT_CLASS}`}>
+                    Employment Type
+                  </div>
                 </th>
-                <th scope="col" className="px-4 py-3 text-left font-medium text-gray-700">
+                <th
+                  scope="col"
+                  className={`${TABLE_ACTIONS_CELL_CLASS} text-left font-medium text-gray-700`}
+                >
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {employees.map((employee) => (
-                <tr key={employee.id}>
-                  <td className="px-4 py-3 text-gray-900">{employee.fullName}</td>
-                  <td className="px-4 py-3 text-gray-700">{employee.jobTitle}</td>
-                  <td className="px-4 py-3 text-gray-700">{employee.department}</td>
-                  <td className="px-4 py-3 text-gray-700">{employee.country}</td>
-                  <td className="px-4 py-3 text-gray-700">{formatSalary(employee.salary)}</td>
-                  <td className="px-4 py-3 text-gray-700">{formatDisplayDate(employee.startDate)}</td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {formatEmploymentType(employee.employmentType)}
+                <tr key={employee.id} className={TABLE_ROW_HEIGHT_CLASS}>
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent value={employee.fullName} className="text-gray-900" />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent value={employee.jobTitle} />
+                  </td>
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent value={employee.department} />
+                  </td>
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent value={employee.country} />
+                  </td>
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent
+                      value={formatSalary(employee.salary)}
+                      className="tabular-nums text-gray-700"
+                    />
+                  </td>
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent
+                      value={formatDisplayDate(employee.startDate)}
+                      className="tabular-nums text-gray-700"
+                    />
+                  </td>
+                  <td className={TABLE_DATA_CELL_CLASS}>
+                    <TableCellContent
+                      value={formatEmploymentType(employee.employmentType)}
+                    />
+                  </td>
+                  <td className={TABLE_ACTIONS_CELL_CLASS}>
                     <div className="flex gap-2">
                       <button
                         type="button"
