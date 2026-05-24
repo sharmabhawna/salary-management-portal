@@ -30,7 +30,9 @@ Railway reads these from `package.json` automatically:
 - **Build command:** `npm run build`
 - **Start command:** `npm start`
 
-The `postinstall` script runs `prisma generate` automatically after `npm install`, so the Prisma client is always generated before TypeScript compilation.
+Two npm lifecycle hooks run automatically without any extra configuration:
+- `postinstall` → runs `prisma generate` after `npm install`, so the Prisma client is always generated before TypeScript compilation.
+- `prestart` → runs `prisma migrate deploy` before `node dist/index.js`, so database migrations are always applied on every container start. This is important on Railway because the filesystem is ephemeral — a fresh container gets a blank SQLite file, and `prestart` ensures the schema is created before the app tries to query it.
 
 ### SQLite persistence note
 
@@ -69,11 +71,7 @@ After both services are deployed, verify the following before testing end-to-end
 
 - [ ] `CORS_ORIGIN` on the Railway service is set to the **exact** Vercel portal URL (e.g. `https://your-portal.vercel.app`, no trailing slash).
 - [ ] `VITE_API_URL` on the Vercel portal is set to the **exact** Railway service URL including `/api` (e.g. `https://salary-management-service.up.railway.app/api`).
-- [ ] Run database migrations on Railway after the first deploy:
-  ```
-  npx prisma migrate deploy
-  ```
-  This can be done via Railway's **Deploy → Run command** or by adding it as a release command.
+- [ ] Database migrations run automatically on every `npm start` via the `prestart` hook — no manual step needed.
 - [ ] Optionally seed initial data:
   ```
   npm run db:seed
