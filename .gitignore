@@ -5,6 +5,9 @@ node_modules/
 dist/
 dist-ssr/
 
+# TypeScript build cache
+tsconfig.*.tsbuildinfo
+
 # Test coverage
 coverage/
 
