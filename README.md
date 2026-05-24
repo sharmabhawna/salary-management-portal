@@ -38,27 +38,39 @@ Top navigation bar with links to Employees and Insights, with active route highl
 ## Prerequisites
 
 - Node.js v20+
+- Git (required for Husky pre-commit hooks)
 - The [salary-management-service](../salary-management-service) running on port 3000
 
 ## Getting Started
+
+**Step 1 — Start the backend** (in a separate terminal, inside `salary-management-service/`):
+
+```bash
+npm install
+cp .env.example .env
+npm run db:migrate
+npm run db:seed   # optional — seeds 10,000 employees
+npm run dev
+```
+
+**Step 2 — Start the portal**:
 
 ```bash
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env
-
-# Start the backend first (in salary-management-service/)
-# npm run dev
-
 # Start the portal
 npm run dev
 ```
 
-The portal runs at http://localhost:5173 and proxies `/api` requests to the service on `:3000`.
+The portal runs at http://localhost:5173. The Vite dev server automatically proxies all `/api` requests to the service on port 3000 — no extra configuration needed.
 
-For a populated dataset, run `npm run db:seed` in the service repo before using the portal.
+> **Note:** A `.env` file is not required for local development. If you want to point the portal at a different backend URL (e.g. for a production build), copy the example and set the variable:
+>
+> ```bash
+> cp .env.example .env
+> # Then edit VITE_API_URL in .env
+> ```
 
 ## Available Scripts
 
@@ -113,4 +125,4 @@ Tests live in `tests/` (not co-located with source). Components that depend on r
 |---|---|---|
 | `VITE_API_URL` | Base URL for the service API | `/api` (proxied to `localhost:3000` in dev) |
 
-In development, the Vite dev server proxies `/api` to the backend, so the default `/api` works without extra configuration. Set `VITE_API_URL=http://localhost:3000/api` in `.env` if you need a direct URL (e.g. for a standalone build).
+In development, the Vite dev server proxies `/api` to the backend automatically — no `.env` file needed. In production (Vercel), set `VITE_API_URL` to the full Railway service URL (e.g. `https://your-service.up.railway.app/api`) in the Vercel dashboard environment variables.
