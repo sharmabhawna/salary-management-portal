@@ -35,7 +35,7 @@ Set the pre-deploy command in Railway → your service → **Settings → Deploy
 
 Two npm lifecycle hooks also run automatically:
 - `postinstall` → runs `prisma generate` after `npm install`, so the Prisma client is always generated before TypeScript compilation.
-- `prestart` → runs `prisma migrate deploy` before `node dist/index.js` as a safety net in case the pre-deploy step is removed or skipped.
+- `prestart` → runs `prisma migrate deploy && npm run db:seed` before `node dist/index.js` as a safety net in case the pre-deploy step is removed or skipped. This means migrations are applied and the database is re-seeded with 10,000 employees on every container start.
 
 ### SQLite persistence and seeding note
 
