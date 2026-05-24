@@ -30,6 +30,8 @@ Railway reads these from `package.json` automatically:
 - **Build command:** `npm run build`
 - **Start command:** `npm start`
 
+The `postinstall` script runs `prisma generate` automatically after `npm install`, so the Prisma client is always generated before TypeScript compilation.
+
 ### SQLite persistence note
 
 Railway's filesystem is **ephemeral** — data is lost on redeploy unless you attach a persistent volume. In the Railway dashboard, go to your service → **Volumes** and mount a volume at the path used in `DATABASE_URL` (e.g. `/app/data`). Update `DATABASE_URL` to match the mount path (`file:/app/data/prod.db`).
