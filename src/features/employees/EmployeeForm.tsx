@@ -4,6 +4,7 @@ import {
   COUNTRIES,
   DEPARTMENTS,
   EMPLOYMENT_TYPES,
+  JOB_TITLES,
 } from '@/features/employees/employeeOptions';
 
 type Props = {
@@ -94,15 +95,21 @@ export function EmployeeForm({ employee, onCancel, onSuccess }: Props) {
             <label htmlFor="employee-job-title" className="mb-1 block text-sm font-medium text-gray-700">
               Job Title
             </label>
-            <input
+            <select
               id="employee-job-title"
-              type="text"
               value={values.jobTitle}
               onChange={(event) => {
                 setField('jobTitle', event.target.value);
               }}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            />
+            >
+              <option value="">Select job title</option>
+              {JOB_TITLES.map((jobTitle) => (
+                <option key={jobTitle} value={jobTitle}>
+                  {jobTitle}
+                </option>
+              ))}
+            </select>
             {fieldErrors.jobTitle && (
               <p className="mt-1 text-sm text-red-600">{fieldErrors.jobTitle}</p>
             )}

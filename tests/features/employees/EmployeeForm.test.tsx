@@ -21,7 +21,10 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 
   await user.type(form.getByLabelText(/full name/i), validFormInput.fullName);
   await user.type(form.getByLabelText(/^email$/i), validFormInput.email);
-  await user.type(form.getByLabelText(/job title/i), validFormInput.jobTitle);
+  await user.selectOptions(
+    form.getByLabelText(/job title/i),
+    validFormInput.jobTitle,
+  );
   await user.selectOptions(
     form.getByLabelText(/^department$/i),
     validFormInput.department,
@@ -230,7 +233,7 @@ describe('EmployeeForm', () => {
     expect(screen.queryByText(/full name is required/i)).not.toBeInTheDocument();
   });
 
-  describe.skip('job title select', () => {
+  describe('job title select', () => {
     it('renders job title as a select with predefined options', () => {
       render(<EmployeeForm onCancel={vi.fn()} onSuccess={vi.fn()} />);
 
