@@ -68,7 +68,10 @@ describe('InsightsDashboard', () => {
       name: /average salary by job title/i,
     }).closest('article') as HTMLElement;
 
-    await user.type(within(jobTitlePanel).getByLabelText(/job title/i), 'Software Engineer');
+    await user.selectOptions(
+      within(jobTitlePanel).getByLabelText(/job title/i),
+      'Software Engineer',
+    );
     await user.selectOptions(
       within(jobTitlePanel).getByLabelText(/^country$/i),
       'United States',
@@ -200,7 +203,10 @@ describe('InsightsDashboard', () => {
       name: /average salary by job title/i,
     }).closest('article') as HTMLElement;
 
-    await user.type(within(jobTitlePanel).getByLabelText(/job title/i), 'Software Engineer');
+    await user.selectOptions(
+      within(jobTitlePanel).getByLabelText(/job title/i),
+      'Software Engineer',
+    );
     await user.selectOptions(
       within(jobTitlePanel).getByLabelText(/^country$/i),
       'United States',
@@ -296,7 +302,10 @@ describe('InsightsDashboard', () => {
       name: /average salary by job title/i,
     }).closest('article') as HTMLElement;
 
-    await user.type(within(jobTitlePanel).getByLabelText(/job title/i), 'Software Engineer');
+    await user.selectOptions(
+      within(jobTitlePanel).getByLabelText(/job title/i),
+      'Software Engineer',
+    );
     await user.selectOptions(
       within(jobTitlePanel).getByLabelText(/^country$/i),
       'United States',
@@ -313,7 +322,7 @@ describe('InsightsDashboard', () => {
       http.get('/api/insights/salary/job-title', () =>
         HttpResponse.json({
           data: null,
-          message: "No employees found with job title 'Designer' in France",
+          message: "No employees found with job title 'UX Designer' in France",
         }),
       ),
     );
@@ -325,7 +334,10 @@ describe('InsightsDashboard', () => {
       name: /average salary by job title/i,
     }).closest('article') as HTMLElement;
 
-    await user.type(within(jobTitlePanel).getByLabelText(/job title/i), 'Designer');
+    await user.selectOptions(
+      within(jobTitlePanel).getByLabelText(/job title/i),
+      'UX Designer',
+    );
     await user.selectOptions(
       within(jobTitlePanel).getByLabelText(/^country$/i),
       'France',
@@ -334,7 +346,7 @@ describe('InsightsDashboard', () => {
 
     expect(
       await within(jobTitlePanel).findByText(
-        "No employees found with job title 'Designer' in France",
+        "No employees found with job title 'UX Designer' in France",
       ),
     ).toBeInTheDocument();
   });
