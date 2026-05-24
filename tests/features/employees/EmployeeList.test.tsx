@@ -152,6 +152,98 @@ describe('EmployeeList', () => {
     expect(screen.queryByRole('cell', { name: 'Jane Doe' })).not.toBeInTheDocument();
   });
 
+  it('keeps department column width stable when sorting changes row content', async () => {
+    const user = userEvent.setup();
+    const variedEmployees = [
+      { ...mockEmployees[0], id: 'emp-a', department: 'Sales' },
+      {
+        ...mockEmployees[1],
+        id: 'emp-b',
+        fullName: 'Pat Longname',
+        department: 'Human Resources',
+      },
+    ];
+
+    server.use(
+      http.get('/api/employees', ({ request }) => {
+        const url = new URL(request.url);
+        const sortBy = url.searchParams.get('sortBy');
+        const sortOrder = url.searchParams.get('sortOrder');
+        const sortedEmployees =
+          sortBy === 'department' && sortOrder === 'asc'
+            ? [...variedEmployees].reverse()
+            : variedEmployees;
+
+        return HttpResponse.json({
+          data: sortedEmployees,
+          total: sortedEmployees.length,
+          page: 1,
+          limit: 20,
+        });
+      }),
+    );
+
+    render(<EmployeeList pageSize={20} />);
+    await screen.findByRole('cell', { name: 'Sales' });
+
+    const departmentHeader = screen.getByRole('columnheader', { name: /department/i });
+    const table = screen.getByRole('table');
+    const widthBefore = departmentHeader.getBoundingClientRect().width;
+    const tableWidthBefore = table.getBoundingClientRect().width;
+    const headerHeightBefore = departmentHeader.getBoundingClientRect().height;
+
+    await user.click(screen.getByRole('button', { name: /department/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'Human Resources' })).toBeInTheDocument();
+    });
+
+    expect(departmentHeader.getBoundingClientRect().width).toBeCloseTo(widthBefore, 0);
+    expect(table.getBoundingClientRect().width).toBeCloseTo(tableWidthBefore, 0);
+    expect(departmentHeader.getBoundingClientRect().height).toBeCloseTo(
+      headerHeightBefore,
+      0,
+    );
+  });
+
+  it('shows sort icons and aria-sort state on column headers', async () => {
+    const user = userEvent.setup();
+
+    render(<EmployeeList pageSize={2} />);
+    await screen.findByRole('cell', { name: 'Jane Doe' });
+
+    expect(screen.getByRole('columnheader', { name: /full name/i })).toHaveAttribute(
+      'aria-sort',
+      'ascending',
+    );
+    expect(screen.getByRole('columnheader', { name: /salary/i })).toHaveAttribute(
+      'aria-sort',
+      'none',
+    );
+
+    await user.click(screen.getByRole('button', { name: /salary/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('columnheader', { name: /salary/i })).toHaveAttribute(
+        'aria-sort',
+        'ascending',
+      );
+    });
+    expect(screen.getByRole('columnheader', { name: /full name/i })).toHaveAttribute(
+      'aria-sort',
+      'none',
+    );
+
+    await user.click(screen.getByRole('button', { name: /salary/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('columnheader', { name: /salary/i })).toHaveAttribute(
+        'aria-sort',
+        'descending',
+      );
+    });
+  });
+
   it('toggles sort order when clicking the same column header', async () => {
     const user = userEvent.setup();
     const sortRequests: Array<{ sortBy: string | null; sortOrder: string | null }> = [];
