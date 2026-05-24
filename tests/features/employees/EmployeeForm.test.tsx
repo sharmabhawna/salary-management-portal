@@ -229,6 +229,39 @@ describe('EmployeeForm', () => {
 
     expect(screen.queryByText(/full name is required/i)).not.toBeInTheDocument();
   });
+
+  describe.skip('job title select', () => {
+    it('renders job title as a select with predefined options', () => {
+      render(<EmployeeForm onCancel={vi.fn()} onSuccess={vi.fn()} />);
+
+      const jobTitleSelect = screen.getByRole('combobox', { name: /job title/i });
+      expect(jobTitleSelect).toHaveValue('');
+      expect(
+        screen.getByRole('option', { name: 'Select job title' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: 'Product Analyst' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: 'Software Engineer' }),
+      ).toBeInTheDocument();
+    });
+
+    it('allows selecting a job title in add mode', async () => {
+      const user = userEvent.setup();
+
+      render(<EmployeeForm onCancel={vi.fn()} onSuccess={vi.fn()} />);
+
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: /job title/i }),
+        'Product Analyst',
+      );
+
+      expect(screen.getByRole('combobox', { name: /job title/i })).toHaveValue(
+        'Product Analyst',
+      );
+    });
+  });
 });
 
 describe('EmployeeForm wiring in EmployeeList', () => {
